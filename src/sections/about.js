@@ -25,23 +25,13 @@
   const workNote = () => `private repos at Alebex AI, ${workCount()} contributions in the last year`;
   const ABOUT = 'Hello, World. I\'m Behbod Babai, a full-stack engineer based in Vancouver, BC, Canada. I specialize in building AI-powered applications and scalable web systems across frontend, backend and infrastructure. Experience: React, TypeScript, Node.js, cloud infrastructure, CI/CD, AI agents, RAG systems, voice AI and enterprise integrations. Currently building AI systems, automation platforms and voice AI solutions. Interested in software architecture, AI engineering, DevOps and full-stack development. Always learning new technologies and improving engineering practices.';
 
-  // ---------- Shared console geometry: the console and the five link lines stack into one block.
+  // ---------- Shared geometry for the console and the five link rows.
   const FS = 16, CW = 9.6, LH = 25, GAP = 9, X0 = 72, XL = 40.5, XR = 1159.5, RAD = 12;
   const pal = T => (T.mode === 'dark'
     ? { bg: '#0b0f14', bar: '#141a21', line: '#2a313c' }
     : { bg: '#f6f8fa', bar: '#eaeef2', line: '#d1d9e0' });
-  // head: rounded top, open bottom. top and middle: open both ends. bottom: rounded bottom, open top.
-  function shape(stack, H, top) {
-    const rt = stack === 'head', rb = stack === 'bottom', a = RAD;
-    const y0 = rt ? top + 0.5 : 0, y1 = rb ? H - 0.5 : H;
-    const fill = `M${XL} ${y0 + (rt ? a : 0)}${rt ? `a${a} ${a} 0 0 1 ${a} -${a}` : ''}H${XR - (rt ? a : 0)}${rt ? `a${a} ${a} 0 0 1 ${a} ${a}` : ''}` +
-      `V${y1 - (rb ? a : 0)}${rb ? `a${a} ${a} 0 0 1 -${a} ${a}` : ''}H${XL + (rb ? a : 0)}${rb ? `a${a} ${a} 0 0 1 -${a} -${a}` : ''}Z`;
-    let line;
-    if (rt) line = `M${XL} ${y1}V${y0 + a}a${a} ${a} 0 0 1 ${a} -${a}H${XR - a}a${a} ${a} 0 0 1 ${a} ${a}V${y1}`;
-    else if (rb) line = `M${XL} ${y0}V${y1 - a}a${a} ${a} 0 0 0 ${a} ${a}H${XR - a}a${a} ${a} 0 0 0 ${a} -${a}V${y0}`;
-    else line = `M${XL} ${y0}V${y1}M${XR} ${y0}V${y1}`;
-    return { fill, line };
-  }
+  // Each image is a complete card, so it looks right however a browser spaces stacked images (phones add gaps).
+  const card = (y0, y1, a = RAD) => `M${XL} ${y0 + a}a${a} ${a} 0 0 1 ${a} -${a}H${XR - a}a${a} ${a} 0 0 1 ${a} ${a}V${y1 - a}a${a} ${a} 0 0 1 -${a} ${a}H${XL + a}a${a} ${a} 0 0 1 -${a} -${a}Z`;
   const chevron = (x, y, col) => `<path d="M${x} ${y - 11}l5.5 5.5-5.5 5.5" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
 
   // ---------- 1. Console
@@ -77,7 +67,7 @@
   };
 
   add({
-    id: 'f-console', name: 'Console', stack: 'head',
+    id: 'f-console', name: 'Console',
     line: 'His README as a terminal: Hello World first, then whoami, whereis, his specialty, experience, running jobs, interests and his motto, typed in and left on a blinking prompt.',
     render(c) {
       const T = c.T, P = pal(T), still = c.still, g = greetOf(c);
@@ -90,26 +80,27 @@
         const w = r(n * CW);
         out += `<g class="tl" style="animation-delay:${f2(t)}s">${chevron(X0, y, T.a3)}<text class="mono" x="${cx}" y="${y}" font-size="${FS}" textLength="${w}" lengthAdjust="spacing"><tspan fill="${T.fg}" font-weight="600">${nb(b.cmd)}</tspan>${b.note ? `<tspan fill="${T.muted}">${nb(b.note)}</tspan>` : ''}</text>`;
         if (!still) {
-          out += `<g class="tw" style="animation:tw${bi} ${f2(n * TY.spd)}s steps(${n},end) ${f2(ts)}s both"><rect x="${cx}" y="${y - 15}" width="${CW}" height="20" fill="${T.fg}" opacity=".8"/><rect x="${r(cx + CW)}" y="${y - 17}" width="${r(w + 24)}" height="24" fill="${P.bg}"/></g>`;
-          css += `@keyframes tw${bi}{0%{transform:translateX(0);opacity:1}99%{transform:translateX(${w}px);opacity:1}100%{transform:translateX(${w}px);opacity:0}}`;
+          // The cursor walks in steps; its fade runs separately and smoothly, so it always ends fully hidden.
+          out += `<g class="tw" style="animation:tw${bi} ${f2(n * TY.spd)}s steps(${n},end) ${f2(ts)}s both,twh ${f2(n * TY.spd)}s linear ${f2(ts)}s both"><rect x="${cx}" y="${y - 15}" width="${CW}" height="20" fill="${T.fg}" opacity=".8"/><rect x="${r(cx + CW)}" y="${y - 17}" width="${r(w + 24)}" height="24" fill="${P.bg}"/></g>`;
+          css += `@keyframes tw${bi}{from{transform:translateX(0)}to{transform:translateX(${w}px)}}`;
         }
         out += '</g>';
         b.out.forEach((segs, li) => { y += LH; out += row(segs, y, ot + li * TY.line); });
       });
       y += LH + GAP;
       out += `<g class="tl" style="animation-delay:${f2(plan.end)}s">${chevron(X0, y, T.a3)}<rect class="cur" x="${cx}" y="${y - 15}" width="${CW}" height="20" fill="${T.fg}" opacity=".75"/></g>`;
-      const H = y + 30, top = 12, S = shape('head', H, top), yb = top + 38.5;
+      const H = y + 30, top = 12, box = card(top + 0.5, H - 0.5), yb = top + 38.5;
       let greet = '';
       if (g) {
         const gw = g.text.length * 8;
         greet = `<text class="mono" x="1136" y="36" font-size="11" letter-spacing="1.4" text-anchor="end" fill="${T.a1}">${esc(g.text)}</text>` +
           (g.fa ? `<text x="${r(1136 - gw - 12)}" y="37" font-size="13" direction="rtl" text-anchor="start" style="${FA}" fill="${T.a2}">${g.fa}</text>` : '');
       }
-      const style = css + `.tl{animation:tl .01s linear both}@keyframes tl{from{opacity:0}}.tw{opacity:0;transform-box:view-box}` +
+      const style = css + `.tl{animation:tl .01s linear both}@keyframes tl{from{opacity:0}}.tw{opacity:0;transform-box:view-box}@keyframes twh{0%,96%{opacity:1}100%{opacity:0}}` +
         `.cur{animation:cur 1.1s steps(1,end) infinite}@keyframes cur{50%{opacity:0}}.cw{animation:cw .5s ease-out both}@keyframes cw{from{opacity:0}}`;
-      const body = `<g class="cw"><path d="${S.fill}" fill="${P.bg}"/>
+      const body = `<g class="cw"><path d="${box}" fill="${P.bg}"/>
         <path d="M${XL} ${top + 0.5 + RAD}a${RAD} ${RAD} 0 0 1 ${RAD} -${RAD}H${XR - RAD}a${RAD} ${RAD} 0 0 1 ${RAD} ${RAD}V${yb}H${XL}Z" fill="${P.bar}"/>
-        <line x1="${XL}" y1="${yb}" x2="${XR}" y2="${yb}" stroke="${P.line}"/><path d="${S.line}" fill="none" stroke="${P.line}"/>
+        <line x1="${XL}" y1="${yb}" x2="${XR}" y2="${yb}" stroke="${P.line}"/><path d="${box}" fill="none" stroke="${P.line}"/>
         <g fill="none" stroke="${T.muted}" stroke-opacity=".55"><circle cx="64" cy="31.5" r="5.5"/><circle cx="84" cy="31.5" r="5.5"/><circle cx="104" cy="31.5" r="5.5"/></g>
         <text class="mono" x="600" y="36" font-size="12" text-anchor="middle" fill="${T.muted}">behbod@vancouver: ~</text>${greet}
         ${out}</g>`;
@@ -117,22 +108,21 @@
     },
   });
 
-  // ---------- 2. Link lines, one image each so each can carry its own link
+  // ---------- 2. Link rows, one image each so each can carry its own link
   const LINKS = [
-    { id: 'f-link-site', name: 'Site', stack: 'top', value: F.site, alt: `Site: ${F.site}` },
-    { id: 'f-link-work', name: 'Work GitHub', stack: 'middle', value: F.work, note: true },
-    { id: 'f-link-email', name: 'Email', stack: 'middle', value: F.email, alt: `Email: ${F.email}` },
-    { id: 'f-link-linkedin', name: 'LinkedIn', stack: 'middle', value: F.linkedin, alt: `LinkedIn: ${F.linkedin}` },
-    { id: 'f-link-resume', name: 'Resume', stack: 'bottom', value: 'PDF', down: true, alt: 'Resume: download the PDF' },
+    { id: 'f-link-site', name: 'Site', value: F.site, alt: `Site: ${F.site}` },
+    { id: 'f-link-work', name: 'Work GitHub', value: F.work, note: true },
+    { id: 'f-link-email', name: 'Email', value: F.email, alt: `Email: ${F.email}` },
+    { id: 'f-link-linkedin', name: 'LinkedIn', value: F.linkedin, alt: `LinkedIn: ${F.linkedin}` },
+    { id: 'f-link-resume', name: 'Resume', value: 'PDF', down: true, alt: 'Resume: download the PDF' },
   ];
   const ARROW = { out: 'M-4.5 4.5L4.5-4.5M-2-4.5h6.5V2', down: 'M0-6v8.5M-4-1.5L0 2.5l4-4M-5.5 6.5h11' };
-  function linkSvg(c, L, i, stack) {
-    const T = c.T, P = pal(T), dk = T.mode === 'dark', H = 52, y = 32;
-    const S = shape(stack, H, 0), lx = X0 + 22, vx = r(X0 + 22 + 13 * CW);
+  function linkSvg(c, L, i) {
+    const T = c.T, P = pal(T), dk = T.mode === 'dark', H = 76, y = 44, box = card(6.5, 69.5, 10);
+    const lx = X0 + 22, vx = r(X0 + 22 + 13 * CW);
     const note = L.note ? `<text class="mono" x="${r(vx + (L.value.length + 3) * CW)}" y="${y}" font-size="${FS - 1}" fill="${T.muted}">${nb('# ' + workNote())}</text>` : '';
     const ad = L.down ? ARROW.down : ARROW.out, nudge = L.down ? 'translate(0,2px)' : 'translate(2px,-2px)';
     const arrow = a => `<path d="${ad}" fill="none" stroke="${a}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`;
-    const divider = `<line x1="${X0}" y1=".5" x2="1128" y2=".5" stroke="${P.line}"${stack === 'top' ? '' : ' stroke-dasharray="2 4"'}/>`;
     const d0 = f2(typing().end + 0.5 + i * 0.14);
     const style = `.lkI{animation:lkI .6s ${f2(0.2 + i * 0.07)}s ease-out both}@keyframes lkI{from{opacity:0}}
       .lkS,.lkT,.lkB,.lkA{animation-duration:8s;animation-delay:${d0}s;animation-iteration-count:infinite;animation-fill-mode:both;animation-timing-function:ease-in-out}
@@ -141,13 +131,13 @@
       .lkT{animation-name:lkT}@keyframes lkT{0%,26%,100%{opacity:0}5%,15%{opacity:${dk ? 0.07 : 0.05}}}
       .lkB{animation-name:lkB}@keyframes lkB{0%,26%,100%{opacity:0}5%,15%{opacity:1}}
       .lkA{transform-box:view-box;animation-name:lkA}@keyframes lkA{0%,26%,100%{opacity:0;transform:none}6%,16%{opacity:1;transform:${nudge}}}`;
-    const defs = `<clipPath id="lkC"><path d="${S.fill}"/></clipPath>
+    const defs = `<clipPath id="lkC"><path d="${box}"/></clipPath>
       <linearGradient id="lkG" x1="0" x2="1"><stop offset="0" stop-color="${T.a1}" stop-opacity="0"/><stop offset=".5" stop-color="${dk ? '#ffffff' : T.a1}" stop-opacity="${dk ? 0.08 : 0.1}"/><stop offset="1" stop-color="${T.a1}" stop-opacity="0"/></linearGradient>`;
-    const body = `<g class="lkI"><path d="${S.fill}" fill="${P.bg}"/>
-      <g clip-path="url(#lkC)"><rect class="lkT" x="40" y="0" width="1120" height="${H}" fill="${T.a1}"/>
+    const body = `<g class="lkI"><path d="${box}" fill="${P.bg}"/>
+      <g clip-path="url(#lkC)"><rect class="lkT" x="40" y="6" width="1120" height="64" fill="${T.a1}"/>
         <g class="lkS"><rect x="-240" y="-10" width="240" height="${H + 20}" fill="url(#lkG)" transform="skewX(-18)"/></g>
-        <rect class="lkB" x="41" y="0" width="2.5" height="${H}" fill="${T.a1}"/></g>
-      ${divider}<path d="${S.line}" fill="none" stroke="${P.line}"/>
+        <rect class="lkB" x="41" y="6" width="2.5" height="64" fill="${T.a1}"/></g>
+      <path d="${box}" fill="none" stroke="${P.line}"/>
       ${chevron(X0, y, T.a3)}
       <text class="mono" x="${lx}" y="${y}" font-size="${FS}" fill="${T.muted}">${nb(L.name)}</text>
       <text class="mono" x="${vx}" y="${y}" font-size="${FS}" font-weight="600" fill="${T.fg}">${nb(L.value)}</text>${note}
@@ -156,9 +146,9 @@
     return R.svg({ w: 1200, h: H, title: `${L.name} · ${L.value}`, desc, style, defs, body, still: c.still, noBand: true });
   }
   LINKS.forEach((L, i) => add({
-    id: L.id, name: L.name + ' link', stack: L.stack,
-    line: `${L.name} line under the console (${L.stack} of the stack): its own image so the README can wrap it in a real link, with a hover-like shimmer now and then.`,
-    render(c) { return linkSvg(c, L, i, (this && this.stack) || L.stack); },
+    id: L.id, name: L.name + ' link',
+    line: `${L.name} row under the console: its own image so the README can wrap it in a real link, with a light sweeping across now and then.`,
+    render(c) { return linkSvg(c, L, i); },
   }));
 
   // ---------- 3. Loadout: a kill feed snipes his 16 skills, then they sit as loot on the extraction screen.

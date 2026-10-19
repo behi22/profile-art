@@ -389,7 +389,7 @@
         </g>
         <rect x="452" y="68" width="296" height="128" rx="10" fill="url(#mxmh)" opacity=".5"/><rect x="452" y="68" width="296" height="128" rx="10" fill="url(#mxgl)"/>`;
       css += `.mxst{animation:mxst 26s linear infinite}@keyframes mxst{to{transform:translateX(-${SW}px)}}
-        .mxv{animation:mxv .7s steps(5,end) .1s both}@keyframes mxv{0%{opacity:0}30%{opacity:.7}50%{opacity:.15}100%{opacity:1}}`;
+        .mxv{animation:mxv .7s linear .1s both}@keyframes mxv{0%,18%{opacity:0}20%,40%{opacity:.7}42%,58%{opacity:.15}60%,100%{opacity:1}}`;
 
       // ---- VU meters: needles play the months, peak lights flash on each channel's busiest month.
       const mmax = Math.max(1, ...mw, ...mp);

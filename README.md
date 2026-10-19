@@ -8,8 +8,6 @@ Every image is redrawn every hour from live data: the real time and sky over Van
 
 Everything below is a small detail you might miss, section by section.
 
----
-
 ## 1. Header
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="https://behi22.github.io/profile-art/header-dark.svg"><img src="https://behi22.github.io/profile-art/header-light.svg" alt="Behbod Babai, full-stack engineer building voice AI"></picture>
@@ -145,8 +143,6 @@ My last 365 days of contributions, as a dual cassette deck. Deck A plays my work
 
 The numbered strips between sections draw themselves in. A soft light then glides along each line, and the node by the label glows. Like everything else, they take on the holiday's colours.
 
----
-
 ## Holidays
 
 Each holiday recolours every section. Most sections change in a small way: a greeting, an icon, an object on the window sill, a renamed tape. The Waterfront changes the city itself.
@@ -185,8 +181,6 @@ The date rules:
 - Nowruz uses the astronomical rule: the year starts on the day of the March equinox if it falls before noon in Tehran, otherwise the next day.
 - Lunar New Year uses the official dates through 2050.
 - The Celebration of Light uses a fixed late-July window, because its exact nights are announced each year.
-
----
 
 ## How it works
 
