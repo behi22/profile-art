@@ -1,0 +1,14 @@
+{
+  "name": "profile-art",
+  "private": true,
+  "description": "The live, hourly animated images behind github.com/behi22.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "fetch": "node scripts/fetch.js",
+    "render": "node scripts/render.js",
+    "build": "node scripts/fetch.js && node scripts/render.js",
+    "test": "node scripts/qa.js"
+  }
+}
