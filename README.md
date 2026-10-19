@@ -188,9 +188,10 @@ The date rules:
 - **No scripts:** every image is a single self-contained SVG, with no JavaScript and nothing loaded from elsewhere. All the motion is CSS and SVG animation, which is what GitHub allows inside a README.
 - **Light and dark:** each image comes in both, and the README picks one with `<picture>` to match your GitHub theme.
 - **Reduced motion:** with reduced motion turned on, most of the motion stops and each image settles on a finished frame.
-- **Every hour,** a GitHub Action (`.github/workflows/render.yml`) does four things:
+- **Every hour, on the hour:** at :55 a small timer on my own server (`server/`) asks GitHub to run the Action (`.github/workflows/render.yml`). GitHub's own scheduler never fired for this repo, so the server is the main trigger. GitHub's schedule (at :50) stays on as a backup, and a run skips itself when the live site already shows that hour.
+- **Each run draws the nearest whole hour,** so the pictures always say 12:00, 1:00 and so on, and a late run still lands on the right hour. A run does four things:
   1. Fetches both accounts' contribution calendars from GitHub, and the current Vancouver weather from [Open-Meteo](https://open-meteo.com).
-  2. Draws all 38 images for this hour.
+  2. Draws all 38 images for that hour.
   3. Checks every image: well-formed, no broken numbers or references, nothing loaded from outside, within size.
   4. Publishes them to GitHub Pages.
 - **If a check fails,** nothing is published and the profile keeps the last good hour.
@@ -202,6 +203,7 @@ The date rules:
   - sunrise and sunset against published times
   - bad inputs: odd weather values, missing weather, empty and spiky contribution data
   - the terminal and its link cards lining up as one column
+  - every run landing on the right whole hour, and a second trigger for the same hour skipping
 - **Time zone:** British Columbia stays on daylight time all year from 2026, so the clocks no longer fall back in November. The images follow that through the system's time zone data, and the render refuses to run on time zone data too old to know it.
 
 ### Run it locally
@@ -213,7 +215,7 @@ npm test         # the full test suite
 npm run build    # fetch this hour's data and draw everything into dist/
 ```
 
-`npm run build` needs a `GITHUB_TOKEN` in the environment to read the contribution calendars. Without one it falls back to the last published data. To draw a specific moment, set `RENDER_AT`, for example `RENDER_AT=2026-10-31T05:00:00Z npm run render`.
+`npm run build` needs a `GITHUB_TOKEN` in the environment to read the contribution calendars. Without one it falls back to the last published data. To draw a specific hour, set `RENDER_AT`, for example `RENDER_AT=2026-10-31T05:00:00Z npm run render` (it rounds to the nearest hour).
 
 ### Files
 
@@ -221,5 +223,7 @@ npm run build    # fetch this hour's data and draw everything into dist/
 - `src/live.js`: the Vancouver clock, the sun and moon, the seasons and the 21 holidays
 - `src/sections/`: one file per section
 - `scripts/fetch.js`, `scripts/render.js`, `scripts/check.js`: the hourly run
+- `scripts/when.js`, `scripts/drawn.js`: which hour a run draws, and whether the site already shows it
 - `scripts/qa.js`: the test suite
+- `server/`: the systemd timer and service that trigger the run at :55 (the token lives only on the server, in a root-only file)
 - `data/sample-contrib.json`: a year of real data, used by the tests and as the last fallback

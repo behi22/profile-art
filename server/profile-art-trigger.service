@@ -1,0 +1,20 @@
+[Unit]
+Description=Ask GitHub to redraw the profile art for the coming hour
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+DynamicUser=yes
+# One line, "Authorization: Bearer <token>", in a root-only file; the token can only run workflows in profile-art.
+LoadCredential=github:/etc/profile-art/github-auth
+ExecStart=/usr/bin/curl -fsS -o /dev/null --retry 4 --retry-delay 15 --retry-all-errors --max-time 20 -X POST -H @%d/github -H "Accept: application/vnd.github+json" -H "Content-Type: application/json" -H "X-GitHub-Api-Version: 2022-11-28" -d '{"ref":"main"}' https://api.github.com/repos/behi22/profile-art/actions/workflows/render.yml/dispatches
+ProtectHome=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+CapabilityBoundingSet=
+SystemCallFilter=@system-service
+MemoryMax=64M

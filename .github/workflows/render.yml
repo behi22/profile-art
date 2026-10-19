@@ -1,8 +1,9 @@
 name: Render
 
 on:
+  # My server triggers a run at :55 every hour (server/); this schedule is GitHub's own backup.
   schedule:
-    - cron: '23 * * * *'
+    - cron: '50 * * * *'
   workflow_dispatch:
   push:
     branches: [main]
@@ -17,7 +18,40 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      drawn: ${{ steps.drawn.outputs.drawn }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # The server and the backup schedule both land near the hour, so whichever comes second stops here.
+      - name: Skip if the live site already shows this hour
+        id: drawn
+        if: github.event_name != 'push'
+        run: node scripts/drawn.js
+
+      # GitHub pauses schedules in repos with no activity for 60 days, so a quiet month gets one tiny commit.
+      - name: Keep the hourly schedule alive
+        if: github.event_name != 'push'
+        run: |
+          if [ $(( $(date +%s) - $(git log -1 --format=%ct) )) -gt 2592000 ]; then
+            date -u +%Y-%m-%dT%H:%M:%SZ > .keepalive
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add .keepalive
+            git commit -m 'Keep the hourly schedule alive'
+            git push
+          fi
+
   render:
+    needs: check
+    # A failed skip check or keepalive must never cost the hour, so only a cancel or "already drawn" stops it.
+    if: ${{ !cancelled() && needs.check.outputs.drawn != 'true' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -30,7 +64,7 @@ jobs:
           node-version: 24
 
       - name: Test every hour, season, rain level and holiday
-        if: github.event_name != 'schedule'
+        if: github.event_name == 'push'
         run: npm test
 
       - name: Fetch contributions and Vancouver weather
@@ -49,16 +83,3 @@ jobs:
 
       - id: deploy
         uses: actions/deploy-pages@v5
-
-      # GitHub pauses schedules in repos with no activity for 60 days, so a quiet month gets one tiny commit.
-      - name: Keep the hourly schedule alive
-        if: github.event_name == 'schedule'
-        run: |
-          if [ $(( $(date +%s) - $(git log -1 --format=%ct) )) -gt 2592000 ]; then
-            date -u +%Y-%m-%dT%H:%M:%SZ > .keepalive
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add .keepalive
-            git commit -m 'Keep the hourly schedule alive'
-            git push
-          fi

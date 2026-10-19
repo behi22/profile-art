@@ -169,6 +169,18 @@ for (const theme of ['dark', 'light']) for (const [label, now] of [['plain day',
   if (f.some(x => !x.stretch)) fail(where, 'an image can shrink narrower than the column');
 }
 
+// ---------- G. Each run draws the nearest whole hour, and a second trigger for an hour already live skips.
+const { drawHour, alreadyDrawn } = require('./when');
+const H = (h, m = 0, s = 0) => new Date(Date.UTC(2026, 9, 19, h, m, s));
+for (const [at, want] of [[H(19, 55), H(20)], [H(20), H(20)], [H(20, 5), H(20)], [H(20, 29, 59), H(20)], [H(20, 30), H(21)], [H(19, 50), H(20)], [new Date(Date.UTC(2026, 11, 31, 23, 55)), new Date(Date.UTC(2027, 0, 1))]]) {
+  const got = drawHour(at);
+  if (got.getTime() !== want.getTime()) fail('draw hour', `${at.toISOString()} draws ${got.toISOString()}, expected ${want.toISOString()}`);
+  const v = R.vanTime(got);
+  if (v.min !== 0 || !/:00 (AM|PM)$/.test(v.label)) fail('draw hour', `${at.toISOString()} shows ${v.label}`);
+}
+if (!alreadyDrawn({ drawnFor: H(20).toISOString() }, H(20))) fail('skip', 'an hour already live was not recognised');
+for (const st of [null, {}, { drawnFor: H(19).toISOString() }, { renderedAt: H(20).toISOString() }]) if (alreadyDrawn(st, H(20))) fail('skip', `skipped on ${JSON.stringify(st)}`);
+
 console.log(`${renders} renders in ${((Date.now() - t0) / 1000).toFixed(0)} s, ${holidayDays} holiday days, ${failCount} problems`);
 fails.forEach(f => console.log('FAIL ' + f));
 [...new Set(notes)].forEach(n => console.log('NOTE ' + n));

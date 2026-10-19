@@ -4,6 +4,7 @@ const fs = require('fs'), path = require('path');
 const { load } = require('./load');
 const { check } = require('./check');
 const { OUT } = require('./pieces');
+const { drawHour } = require('./when');
 const DIST = path.join(__dirname, '..', 'dist');
 const read = (f, fallback) => { try { return JSON.parse(fs.readFileSync(path.join(DIST, 'data', f), 'utf8')); } catch (e) { return fallback; } };
 
@@ -14,7 +15,7 @@ const { R, pieces } = load(contrib);
 // BC has kept daylight time all year since March 2026; older time zone data would put every winter clock an hour off.
 if (R.vanTime(new Date(Date.UTC(2026, 11, 21, 20))).h !== 13) { console.error('Time zone data is too old: it does not know BC stays on UTC-7 all year. Use Node 24 or newer.'); process.exit(1); }
 
-const now = process.env.RENDER_AT ? new Date(process.env.RENDER_AT) : new Date();
+const now = drawHour(process.env.RENDER_AT ? new Date(process.env.RENDER_AT) : new Date());
 const s = R.series('both'), st = R.stats(s), ev = R.event2At(now);
 fs.mkdirSync(DIST, { recursive: true });
 let bad = 0;
@@ -32,7 +33,7 @@ for (const [id, name] of OUT) {
 }
 
 const v = R.vanTime(now), sky = R.skyPhase(now);
-const status = { renderedAt: now.toISOString(), vancouver: `${v.iso} ${v.label}`, sky: sky.phase, theme: ev ? ev.name : null, rain: weather.rain, images: OUT.length * 2 - bad };
+const status = { drawnFor: now.toISOString(), renderedAt: new Date().toISOString(), vancouver: `${v.iso} ${v.label}`, sky: sky.phase, theme: ev ? ev.name : null, rain: weather.rain, images: OUT.length * 2 - bad };
 fs.mkdirSync(path.join(DIST, 'data'), { recursive: true });
 fs.writeFileSync(path.join(DIST, 'data', 'status.json'), JSON.stringify(status, null, 2));
 
