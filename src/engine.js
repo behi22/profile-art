@@ -211,7 +211,7 @@
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   E.esc = esc;
 
-  E.svg = function ({ w = 1200, h = 300, title, desc, style = '', defs = '', body, still, noBand }) {
+  E.svg = function ({ w = 1200, h = 300, title, desc, style = '', defs = '', body, still, noBand, stretch }) {
     const ev = !noBand && E.activeEvent && E.eventDecorate ? E.eventDecorate(E.activeEvent.e, E.activeEvent.T, w, h, E.activeEvent.date) : null;
     if (ev) {
       // A nested viewport keeps every view-box transform origin inside the concept unchanged.
@@ -221,7 +221,8 @@
     }
     const base = `.sans{font-family:${SANS}}.mono{font-family:${MONO}}@media (prefers-reduced-motion:reduce){*{animation:none!important}}`;
     const freeze = still ? '*{animation:none!important}' : '';
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-labelledby="t d">` +
+    // Safari can draw a short image a fraction of a pixel shorter than its box; stretching keeps it full width instead of shrinking.
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"${stretch ? ' preserveAspectRatio="none"' : ''} role="img" aria-labelledby="t d">` +
       `<title id="t">${esc(title)}</title><desc id="d">${esc(desc)}</desc>` +
       `<style>${base}${style}${freeze}</style>${defs ? '<defs>' + defs + '</defs>' : ''}${body}</svg>`;
   };

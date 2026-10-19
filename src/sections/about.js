@@ -27,6 +27,8 @@
 
   // ---------- Shared geometry for the console and the five link rows.
   const FS = 16, CW = 9.6, LH = 25, GAP = 9, X0 = 72, XL = 40.5, XR = 1159.5, RAD = 12;
+  // Clear space under the console and around each link card, so every gap in the column is the same.
+  const PAD = 6;
   const pal = T => (T.mode === 'dark'
     ? { bg: '#0b0f14', bar: '#141a21', line: '#2a313c' }
     : { bg: '#f6f8fa', bar: '#eaeef2', line: '#d1d9e0' });
@@ -42,6 +44,14 @@
     const at = cols.map((_, i) => cols.slice(0, i).reduce((a, w) => a + w + 3, 0));
     return LS.map(rw => rw.map((n, i) => [at[i], n, 'a1', 600]));
   };
+  const linkFiles = () => {
+    let at = 0;
+    return LINKS.map(L => {
+      const n = L.name.toLowerCase().replace(/ /g, '-') + (L.down ? '.pdf' : ''), seg = [at, n, 'a1', 600];
+      at += n.length + 3;
+      return seg;
+    });
+  };
   const BLOCKS = () => [
     { cmd: 'echo "Hello, World"', out: [[[null, 'Hello, World', 'a1', 700]]] },
     { cmd: 'whoami', out: [[[null, 'Behbod Babai', 'fg', 700], [null, ' · full-stack engineer', 'fg']]] },
@@ -51,6 +61,7 @@
     { cmd: 'jobs', note: '  # currently building', out: [['[1] ', 'AI systems'], ['[2]-', 'automation platforms'], ['[3]+', 'voice AI solutions']].map(([j, n]) => [[0, j, 'muted'], [5, 'Running', 'a3'], [15, n, 'fg']]) },
     { cmd: 'cat interests.txt', out: [['software architecture', 'AI engineering', 'DevOps', 'full-stack development'].reduce((a, n, i) => a.concat(i ? [[null, ' · ', 'muted']] : [], [[null, n, 'fg']]), [])] },
     { cmd: 'echo $MOTTO', out: [[[null, 'Always learning new technologies and improving engineering practices.', 'fg']]] },
+    { cmd: 'ls links/', note: '  # open one below', out: [linkFiles()] },
   ];
 
   // One timeline for the typing, so the link lines can start their shimmer once the console has finished.
@@ -68,7 +79,7 @@
 
   add({
     id: 'f-console', name: 'Console',
-    line: 'His README as a terminal: Hello World first, then whoami, whereis, his specialty, experience, running jobs, interests and his motto, typed in and left on a blinking prompt.',
+    line: 'His README as a terminal: Hello World first, then whoami, whereis, his specialty, experience, running jobs, interests, his motto and a listing of the links below, typed in and left on a blinking prompt.',
     render(c) {
       const T = c.T, P = pal(T), still = c.still, g = greetOf(c);
       const cx = X0 + 22, plan = typing();
@@ -104,7 +115,7 @@
         <g fill="none" stroke="${T.muted}" stroke-opacity=".55"><circle cx="64" cy="31.5" r="5.5"/><circle cx="84" cy="31.5" r="5.5"/><circle cx="104" cy="31.5" r="5.5"/></g>
         <text class="mono" x="600" y="36" font-size="12" text-anchor="middle" fill="${T.muted}">behbod@vancouver: ~</text>${greet}
         ${out}</g>`;
-      return R.svg({ w: 1200, h: H, title: 'About Behbod Babai', desc: ABOUT, style, body, still, noBand: true });
+      return R.svg({ w: 1200, h: H + PAD, title: 'About Behbod Babai', desc: ABOUT, style, body, still, noBand: true, stretch: true });
     },
   });
 
@@ -118,7 +129,7 @@
   ];
   const ARROW = { out: 'M-4.5 4.5L4.5-4.5M-2-4.5h6.5V2', down: 'M0-6v8.5M-4-1.5L0 2.5l4-4M-5.5 6.5h11' };
   function linkSvg(c, L, i) {
-    const T = c.T, P = pal(T), dk = T.mode === 'dark', H = 76, y = 44, box = card(6.5, 69.5, 10);
+    const T = c.T, P = pal(T), dk = T.mode === 'dark', H = 76, y = 44, box = card(PAD + 0.5, H - PAD - 0.5, 10);
     const lx = X0 + 22, vx = r(X0 + 22 + 13 * CW);
     const note = L.note ? `<text class="mono" x="${r(vx + (L.value.length + 3) * CW)}" y="${y}" font-size="${FS - 1}" fill="${T.muted}">${nb('# ' + workNote())}</text>` : '';
     const ad = L.down ? ARROW.down : ARROW.out, nudge = L.down ? 'translate(0,2px)' : 'translate(2px,-2px)';
@@ -143,7 +154,7 @@
       <text class="mono" x="${vx}" y="${y}" font-size="${FS}" font-weight="600" fill="${T.fg}">${nb(L.value)}</text>${note}
       <g transform="translate(1124 ${y - 5.5})">${arrow(T.muted)}<g class="lkA">${arrow(T.a1)}</g></g></g>`;
     const desc = L.note ? `Work GitHub: ${F.work}, ${workNote()}.` : L.alt + '.';
-    return R.svg({ w: 1200, h: H, title: `${L.name} · ${L.value}`, desc, style, defs, body, still: c.still, noBand: true });
+    return R.svg({ w: 1200, h: H, title: `${L.name} · ${L.value}`, desc, style, defs, body, still: c.still, noBand: true, stretch: true });
   }
   LINKS.forEach((L, i) => add({
     id: L.id, name: L.name + ' link',

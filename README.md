@@ -66,8 +66,9 @@ Vancouver from across the water, as it is this hour.
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="https://behi22.github.io/profile-art/about-dark.svg"><img src="https://behi22.github.io/profile-art/about-light.svg" alt="About Behbod Babai, as a terminal"></picture>
 
-- It types itself out in order: `echo "Hello, World"`, `whoami`, `whereis`, my specialty, `ls experience/`, three running `jobs`, my interests and my motto, then it waits on a blinking cursor.
-- Each link line underneath is its own image, so each one is a real link.
+- It types itself out in order: `echo "Hello, World"`, `whoami`, `whereis`, my specialty, `ls experience/`, three running `jobs`, my interests, my motto and `ls links/`, then it waits on a blinking cursor.
+- `ls links/` lists the five link cards underneath. Each card is its own image, so each one is a real link.
+- The terminal and the cards share the same edges and the same gap between each, on any screen. Phones place a short image on a text line taller than itself, so the profile README aligns each card to the bottom of its line and the spare space lands above every card, the first one included. Safari can also draw a short image a fraction of a pixel shorter than its box, so these images stretch to fill the full width instead of shrinking.
 - Once the typing finishes, a light sweeps down the link rows every 8 seconds and each arrow nudges in turn.
 - The work line's "1,000+ contributions" is worked out from live data and rounded down, so it's always true.
 - On holidays the greeting shows in the terminal's title bar.
@@ -200,6 +201,7 @@ The date rules:
   - every day of every holiday for three years, and the holiday rules out to 2050
   - sunrise and sunset against published times
   - bad inputs: odd weather values, missing weather, empty and spiky contribution data
+  - the terminal and its link cards lining up as one column
 - **Time zone:** British Columbia stays on daylight time all year from 2026, so the clocks no longer fall back in November. The images follow that through the system's time zone data, and the render refuses to run on time zone data too old to know it.
 
 ### Run it locally

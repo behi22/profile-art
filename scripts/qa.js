@@ -151,6 +151,24 @@ for (const [name, arr] of [['all zero', new Array(series.length).fill(0)], ['one
 }
 for (const theme of ['dark', 'light']) for (const p of ITEMS) render(p.id, ctx(theme, now0, 1, { still: true }), `${p.id} still ${theme}`);
 
+// ---------- F. The console and its five link rows stack as one column: same edges, the same gap between every card, and full width in every browser.
+const frame = svg => {
+  const vb = svg.match(/^<svg[^>]*viewBox="0 0 ([\d.]+) ([\d.]+)"/), b = svg.match(/d="M([\d.]+) ([\d.]+)a([\d.]+) [\d.]+ 0 0 1 [\d.]+ -[\d.]+H([\d.]+)a[^V"]*V([\d.]+)a/);
+  if (!vb || !b) return null;
+  const a = +b[3];
+  return { w: +vb[1], xl: +b[1], xr: +b[4] + a, above: +b[2] - a - 0.5, below: +vb[2] - (+b[5] + a) - 0.5, stretch: /^<svg[^>]*preserveAspectRatio="none"/.test(svg) };
+};
+const COLUMN = ['f-console', 'f-link-site', 'f-link-work', 'f-link-email', 'f-link-linkedin', 'f-link-resume'];
+for (const theme of ['dark', 'light']) for (const [label, now] of [['plain day', now0], ['Halloween', vanAt(2026, 10, 31, 21)]]) {
+  const where = `about column ${label} ${theme}`;
+  const f = COLUMN.map(id => frame(render(id, ctx(theme, now, 0), `${id} ${where}`)));
+  if (f.some(x => !x)) { fail(where, 'card outline not found'); continue; }
+  const gaps = f.slice(1).map((x, i) => f[i].below + x.above);
+  if (new Set(gaps).size !== 1) fail(where, 'gaps between cards differ: ' + gaps.join(', '));
+  if (f.some(x => x.w !== f[0].w || x.xl !== f[0].xl || x.xr !== f[0].xr)) fail(where, 'card edges do not line up');
+  if (f.some(x => !x.stretch)) fail(where, 'an image can shrink narrower than the column');
+}
+
 console.log(`${renders} renders in ${((Date.now() - t0) / 1000).toFixed(0)} s, ${holidayDays} holiday days, ${failCount} problems`);
 fails.forEach(f => console.log('FAIL ' + f));
 [...new Set(notes)].forEach(n => console.log('NOTE ' + n));
