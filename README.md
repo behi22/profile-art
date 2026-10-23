@@ -4,7 +4,7 @@ The animated images on my GitHub profile, [github.com/behi22](https://github.com
 
 Every image is redrawn every hour from live data: the real time and sky over Vancouver, tonight's moon, whether it's actually raining, my contributions from both of my accounts, and 21 holidays that each change the scenes. Nothing on the profile is updated by hand.
 
-**See the current hour:** [behi22.github.io/profile-art](https://behi22.github.io/profile-art/)
+**See the current hour, every sky and the date themes:** [behi22.github.io/profile-art](https://behi22.github.io/profile-art/)
 
 Everything below is a small detail you might miss, section by section.
 

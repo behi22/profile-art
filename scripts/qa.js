@@ -181,6 +181,64 @@ for (const [at, want] of [[H(19, 55), H(20)], [H(20), H(20)], [H(20, 5), H(20)],
 if (!alreadyDrawn({ drawnFor: H(20).toISOString() }, H(20))) fail('skip', 'an hour already live was not recognised');
 for (const st of [null, {}, { drawnFor: H(19).toISOString() }, { renderedAt: H(20).toISOString() }]) if (alreadyDrawn(st, H(20))) fail('skip', `skipped on ${JSON.stringify(st)}`);
 
+// ---------- H. The gallery's extra views: six skies, rain, snow, and every theme but the birthday on a day it really shows, all at whole hours.
+const { plan, renderViews, galleryHtml } = require('./variants');
+const SKY_ORDER = ['night', 'dawn', 'morning', 'day', 'golden', 'dusk'];
+// 2026-10-24 has no whole hour in golden hour and 2026-10-29 none in morning, so those views come from the nearest day.
+for (const [y, m, d, h] of [[2026, 10, 23, 15], [2026, 10, 24, 12], [2026, 10, 29, 12], [2026, 12, 21, 12], [2026, 12, 31, 22], [2027, 3, 5, 9], [2027, 3, 20, 2], [2027, 6, 21, 23], [2027, 10, 31, 21], [2028, 2, 29, 9]]) {
+  const now = vanAt(y, m, d, h), v = R.vanTime(now), where = `gallery ${y}-${m}-${d} ${h}:00`;
+  const items = plan(R, now), sky = items.filter(i => i.group === 'sky'), th = items.filter(i => i.group === 'theme');
+  if (new Set(items.map(i => i.key)).size !== items.length) fail(where, 'two views share a key');
+  for (const i of items) if (!i.at || drawHour(i.at).getTime() !== i.at.getTime()) fail(where, `${i.key} is not drawn at a whole hour`);
+  const todays = new Set();
+  for (let hh = 0; hh < 24; hh++) { const t = vanAt(y, m, d, hh); if (t) todays.add(R.skyPhase(t).phase); }
+  for (const p of SKY_ORDER) {
+    const i = sky.find(x => x.key === 'sky-' + p);
+    if (!i) { fail(where, `no ${p} view`); continue; }
+    const iv = R.vanTime(i.at), away = Math.abs(Date.UTC(iv.y, iv.m - 1, iv.d) - Date.UTC(v.y, v.m - 1, v.d)) / DAY;
+    if (R.skyPhase(i.at).phase !== p) fail(where, `the ${p} view is drawn in ${R.skyPhase(i.at).phase}`);
+    if (todays.has(p) ? away !== 0 : !(away >= 1 && away <= 30)) fail(where, `the ${p} view is ${away} days away`);
+    if (i.ev || i.rain) fail(where, `the ${p} view carries a theme or rain`);
+  }
+  const rain = sky.find(x => x.key === 'sky-rain'), snow = sky.find(x => x.key === 'sky-snow');
+  if (!rain || rain.rain !== 1 || R.skyPhase(rain.at).phase !== 'day') fail(where, 'no daytime rain view');
+  if (!snow || R.season(snow.at) !== 'winter' || R.skyPhase(snow.at).phase !== 'day' || R.event2At(snow.at)) fail(where, 'no plain winter snow view');
+  if (th.some(i => i.ev.id === 'birthday')) fail(where, 'the birthday is in the gallery');
+  if (th.length !== R.EVENTS2.length - 1) fail(where, `${th.length} themes, expected ${R.EVENTS2.length - 1}`);
+  const today = Date.UTC(v.y, v.m - 1, v.d);
+  for (const i of th) {
+    const iv = R.vanTime(i.at);
+    if (R.event2At(i.at) !== i.ev) fail(where, `${i.ev.id} is drawn on a day another theme shows`);
+    if (Date.UTC(iv.y, iv.m - 1, iv.d) < today) fail(where, `${i.ev.id} is drawn on a past day`);
+    if (!/^[A-Z][a-z]{2} \d{1,2}( to ([A-Z][a-z]{2} )?\d{1,2})?$/.test(i.sub)) fail(where, `${i.ev.id} date label "${i.sub}"`);
+    if (i.live !== (R.event2At(now) === i.ev)) fail(where, `${i.ev.id} is marked today wrongly`);
+  }
+  if (th.some((i, k) => k && i.order < th[k - 1].order)) fail(where, 'themes are not in calendar order');
+  for (const i of items) for (const id of i.pieces) for (const theme of ['dark', 'light']) render(id, ctx(theme, i.at, i.rain, { ev: i.ev }), `${id} ${where} ${i.key} ${theme}`);
+}
+const nye = plan(R, vanAt(2026, 12, 31, 22)).find(i => i.key === 'theme-newyear');
+if (!nye || !nye.live || R.vanTime(nye.at).h !== 21) fail('gallery', 'New Year is not drawn at 9 PM and marked today on New Year\'s Eve');
+// The page side: a view that fails its checks is left out whole, and the page links only images that were written.
+{
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'pa-views-')), names = Object.fromEntries(require('./pieces').OUT);
+  const picky = (id, svg) => (id === 'f-header' && svg.includes('HAPPY HALLOWEEN') ? ['planted failure'] : problemsOf(id, svg));
+  const got = renderViews({ R, pieces: ITEMS, names, s: series, st: stats, now: vanAt(2026, 10, 23, 15), check: picky, dir });
+  const files = new Set(fs.readdirSync(dir));
+  if (!got.failed.some(f => f.startsWith('theme-halloween')) || got.shown.some(i => i.key === 'theme-halloween')) fail('gallery page', 'a failing view was not left out');
+  if ([...files].some(f => f.startsWith('theme-halloween-'))) fail('gallery page', 'a failing view left files behind');
+  const html = galleryHtml(got.shown, R.esc, names), linked = [...html.matchAll(/variants\/([\w-]+\.svg)/g)].map(x => x[1]);
+  if (!linked.length || linked.some(f => !files.has(f))) fail('gallery page', 'the page links an image that was not written');
+  for (const i of got.shown) for (const id of i.pieces) for (const t of ['dark', 'light']) if (!files.has(`${i.key}-${names[id]}-${t}.svg`)) fail('gallery page', `missing ${i.key} ${id} ${t}`);
+  if (html.includes(String.fromCharCode(0x2014))) fail('gallery page', 'em dash');
+  // Even a planner that throws leaves the hourly run standing, with no gallery rather than a crash.
+  const broken = Object.create(R);
+  broken.vanTime = () => { throw new Error('planted'); };
+  let none = null;
+  try { none = renderViews({ R: broken, pieces: ITEMS, names, s: series, st: stats, now: vanAt(2026, 10, 23, 15), check: problemsOf, dir }); } catch (e) { fail('gallery page', 'a failing planner crashed the run: ' + e.message); }
+  if (none && (none.shown.length || !none.failed.length || galleryHtml(none.shown, R.esc, names) !== '')) fail('gallery page', 'a failing planner still produced a gallery');
+  fs.rmSync(dir, { recursive: true, force: true });
+}
+
 console.log(`${renders} renders in ${((Date.now() - t0) / 1000).toFixed(0)} s, ${holidayDays} holiday days, ${failCount} problems`);
 fails.forEach(f => console.log('FAIL ' + f));
 [...new Set(notes)].forEach(n => console.log('NOTE ' + n));
