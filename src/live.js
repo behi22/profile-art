@@ -165,7 +165,7 @@
   R.floatplane = function ({ T, id, face = 1, scale = 0.72, beam = false }) {
     const dk = T.mode === 'dark';
     const C = dk
-      ? { b0: '#46557a', b1: '#1c2438', f0: '#33405e', f1: '#161d2e', rim: '#9aaccf', win: '#ffd27a', winO: 0.85, panel: '#0b1020', prop: '#c9d6f2' }
+      ? { b0: '#8d98ae', b1: '#5f6a82', f0: '#7d89a1', f1: '#4f5a72', rim: '#2b3550', win: '#ffd27a', winO: 0.85, panel: '#1c2438', prop: '#c9d6f2' }
       : { b0: '#ffffff', b1: '#cfd8e6', f0: '#eef2f7', f1: '#b9c4d6', rim: '#27314a', win: '#2b3a55', winO: 0.8, panel: '#27314a', prop: '#27314a' };
     const nav = face === 1 ? '#ff4d4d' : '#3ddc84';
     const ln = `stroke="${C.rim}" stroke-width=".45" stroke-opacity=".7"`;
