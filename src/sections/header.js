@@ -9,7 +9,7 @@
 
   // The Voice Line as the tower's broadcast: born at the antenna light, swelling over the water, settling to silence before the name.
   function voiceLine(T, s, still) {
-    const xs = TX, xe = 590, len = xs - xe, mid = TY, n = 64, K = 8;
+    const xs = TX, xe = 590, len = xs - xe, mid = TY, n = 64, K = 16;
     const v = R.resample(R.norm(R.gauss(s, 6)), n);
     const env = i => {
       const t = i / (n - 1);

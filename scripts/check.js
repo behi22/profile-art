@@ -1,5 +1,5 @@
 // The checks every image must pass before it is published: well-formed, self-contained, no broken numbers, within size.
-const CAP_KB = { 'f-waterfront': 140, 'f-story': 140 };
+const CAP_KB = { 'f-waterfront': 140, 'f-story': 140, 'f-header': 110 };
 
 function balance(svg) {
   const re = /<!--[\s\S]*?-->|<(\/?)([a-zA-Z][\w:-]*)((?:"[^"]*"|'[^']*'|[^'">])*?)(\/?)>/g;
