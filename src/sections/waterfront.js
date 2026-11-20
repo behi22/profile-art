@@ -605,11 +605,11 @@
           `<g stroke="${glitC}" stroke-width="1.2" stroke-linecap="round" opacity="${f1(op)}">${glit}</g>`;
       }
       const fyY = yH + 24;
-      const fHull = nightish ? '#0b0f1f' : '#1d2a40', fUp = nightish ? '#161b2f' : ph === 'golden' || ph === 'dusk' ? '#d9cfd2' : '#f1f4f8';
+      const fHull = '#1d2a40', fUp = nightish ? '#7d89a1' : ph === 'golden' || ph === 'dusk' ? '#d9cfd2' : '#f1f4f8';
       const fWin = nightish ? '#ffd58a' : '#3a4862';
       const ferry = `<g class="fy"><g transform="translate(0 ${fyY})">
         <path d="M-3 4.5L-170 3.4V6.4Z" fill="url(#wk)"/><path d="M-4 6.5Q-70 10-150 8.5" stroke="#ffffff" stroke-opacity=".22" fill="none"/>
-        <path d="M0 0h84l-7 7h-71z" fill="${fHull}"/><path d="M6 0v-6h66v6zM14-6v-5h46v5zM30-11v-7h8v7z" fill="${fUp}"/><path d="M30-18h8v2h-8z" fill="${nightish ? '#2a3150' : '#c92a2a'}"/>
+        <path d="M0 0h84l-7 7h-71z" fill="${fHull}"/><path d="M6 0v-6h66v6zM14-6v-5h46v5zM30-11v-7h8v7z" fill="${fUp}"/><path d="M30-18h8v2h-8z" fill="${nightish ? '#a3262e' : '#c92a2a'}"/>
         <path d="M9-3h60M17-8.4h40" stroke="${fWin}" stroke-width="1.3" stroke-dasharray="1.8 2"/>
         ${nightish ? `<path d="M9 9.5h60M17 12.5h40" stroke="#ffd58a" stroke-opacity=".28" stroke-width="1.2" stroke-dasharray="1.8 2"/><circle cx="72" cy="-8" r="1.1" fill="#7dff9b"/>` : `<path d="M2 8h78" stroke="${fHull}" stroke-opacity=".25" stroke-width="3"/>`}
         <path d="M80 6.5q5-1.6 9 0" stroke="#ffffff" stroke-opacity=".55" fill="none"/></g></g>`;
