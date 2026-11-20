@@ -53,9 +53,6 @@ jobs:
     # A failed skip check or keepalive must never cost the hour, so only a cancel or "already drawn" stops it.
     if: ${{ !cancelled() && needs.check.outputs.drawn != 'true' }}
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
 
@@ -81,5 +78,15 @@ jobs:
         with:
           path: dist
 
+  # Publishing in the same job as the upload sometimes found no upload yet (actions/deploy-pages#451), so it runs in its own job.
+  deploy:
+    needs: render
+    # Like render, a failed skip check must not cost the hour; only a finished render is required.
+    if: ${{ !cancelled() && needs.render.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
       - id: deploy
         uses: actions/deploy-pages@v5
